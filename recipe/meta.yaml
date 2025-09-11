@@ -1,42 +1,47 @@
 {% set name = "argon2-cffi-bindings" %}
-{% set version = "21.2.0" %}
+{% set version = "25.1.0" %}
 
 package:
   name: {{ name|lower }}
   version: {{ version }}
 
 source:
-  url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz
-  sha256: "bb89ceffa6c791807d1305ceb77dbfacc5aa499891d2c55661c6459651fc39e3"
+  url: https://pypi.org/packages/source/{{ name[0] }}/{{ name }}/{{ name|replace("-", "_") }}-{{ version }}.tar.gz
+  sha256: b957f3e6ea4d55d820e40ff76f450952807013d361a65d7f28acc0acbf29229d
 
 build:
-  number: 1
-  skip: True  # [py<36]
-  script:
-    - ln -sf $RANLIB $BUILD_PREFIX/bin/ranlib  # [unix]
-    - {{ PYTHON }} -m pip install . -vv
+  number: 0
+  skip: True  # [py<39]
+  script: {{ PYTHON }} -m pip install . -vv --no-deps --no-build-isolation
 
 requirements:
   build:
+    - {{ stdlib("c") }}
     - {{ compiler("c") }}
   host:
-    - python
-    - cffi >=1.0.1
     - pip
-    - setuptools >=45
+    - python
+    - cffi >=1.0.1  # [py<314]
+    - cffi >=2  # [py>=314]
+    - setuptools >=77
     - setuptools_scm >=6.2
-    - wheel
+    - toml
   run:
     - python
-    - cffi >=1.0.1
+    - cffi >=1.0.1  # [py<314]
+    - cffi >=2  # [py>=314]
 
 test:
+  source_files:
+    - tests
   imports:
     - _argon2_cffi_bindings
   requires:
     - pip
+    - pytest
   commands:
     - pip check
+    - pytest -v tests
 
 about:
   home: https://github.com/hynek/argon2-cffi-bindings
